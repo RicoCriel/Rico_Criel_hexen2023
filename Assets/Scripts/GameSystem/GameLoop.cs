@@ -10,6 +10,9 @@ public class GameLoop : MonoBehaviour
     private BoardView _boardView;
     private StateMachine _stateMachine;
 
+    //new
+    private InteractionEventArgs _currentHoverEvent;
+
     public void OnEnable()
     {
         _stateMachine = new StateMachine();
@@ -46,17 +49,20 @@ public class GameLoop : MonoBehaviour
 
         Debug.Log($"{e.Card.CardType} dropped on {e.Position.GridPosition} ");
 
-        if(_boardView.ActivatedPositions.Contains(e.Position.GridPosition))
+        if (_currentHoverEvent != null &&
+            _boardView.ActivatedPositions.Contains(_currentHoverEvent.Position.GridPosition))
         {
             _engine.Drop(
-            e.Card.CardType,
-            _boardView.ActivatedPositions);
+                _currentHoverEvent.Card.CardType,
+                _boardView.ActivatedPositions);
         }
     }
 
     private void CardHovered(object sender, InteractionEventArgs e)
     {
         Debug.Log($"{e.Card.CardType} hovered on {e.Position.GridPosition}");
+
+        _currentHoverEvent = e;
 
         var positions = _engine.MoveSet.For(
             e.Card.CardType).Positions(
