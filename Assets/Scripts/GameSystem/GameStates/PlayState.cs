@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 
 public class PlayState : State
 {
-    private BoardView _boardView;
+    private PlayView _playView; 
 
     public PlayState()
     {
@@ -13,17 +13,15 @@ public class PlayState : State
 
     public override void OnEnter()
     {
-        var asyncOperation = SceneManager.LoadSceneAsync("HexGame", LoadSceneMode.Additive);
-        asyncOperation.completed += InitializeScene;
+        _playView = GameObject.FindObjectOfType<PlayView>();
+        if(_playView != null)
+        {
+            _playView.Cards.SetActive(true);
+        }
     }
 
     public override void OnExit()
     {
         SceneManager.UnloadSceneAsync("HexGame");
-    }
-
-    private void InitializeScene(AsyncOperation obj)
-    {
-        _boardView = GameObject.FindObjectOfType<BoardView>();
     }
 }

@@ -9,8 +9,6 @@ using System.Collections.Generic;
         public Position FromPosition { get; }
 
         public Position ToPosition { get; }
-        
-        
 
         public PieceMovedEventArgs(PieceView piece, Position fromPosition, Position toPosition)
         {

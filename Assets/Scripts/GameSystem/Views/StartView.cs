@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-public class MenuView : MonoBehaviour
+
+public class StartView : MonoBehaviour
 {
     public event EventHandler PlayClicked;
+    public GameObject Button;
 
     public void Play()
         => OnPlayClicked(EventArgs.Empty);
@@ -14,7 +16,7 @@ public class MenuView : MonoBehaviour
     private void OnPlayClicked(EventArgs eventArgs)
     {
         var handler = PlayClicked;
-            handler?.Invoke(this, eventArgs);
+        handler?.Invoke(this, eventArgs);
     }
-
 }
+

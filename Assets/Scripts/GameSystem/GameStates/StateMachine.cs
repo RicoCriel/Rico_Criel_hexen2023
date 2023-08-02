@@ -5,6 +5,7 @@ using UnityEngine;
 
 public enum States
 {
+    //add states here
     Start, Playing
 }
 
@@ -14,7 +15,11 @@ public class StateMachine
 
     private Stack<States> _currentStateNames = new Stack<States>();
 
+    //this returns a State and cannot be directly compared 
     public State CurrentState => _states[_currentStateNames.Peek()];
+
+    //this returns the current state name as an enum value.
+    public States CurrentStateName => _currentStateNames.Peek();
 
     public void Register(States stateName, State state)
     {

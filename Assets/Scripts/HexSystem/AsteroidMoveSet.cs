@@ -52,16 +52,20 @@ internal class AsteroidMoveSet : MoveSet
 
     internal override bool Execute(List<Position> positions)
     {
+        bool piecesRemoved = false;
+
         foreach (var position in positions)
         {
-            if(Board.TryGetPieceAt(position, out var piece))
+            if (Board.TryGetPieceAt(position, out var piece))
             {
                 if (!piece.IsPlayer && Board.IsValid(position))
                 {
-                    return Board.Take(position);
+                    Board.Take(position);
+                    piecesRemoved = true;
                 }
             }
         }
-        return true;
+
+        return piecesRemoved;
     }
 }
