@@ -115,7 +115,27 @@ using System.Collections.Generic;
             return true;
         }
 
-        public bool Take(Position fromPosition)
+    //new method for rainmoveset
+    public void DeactivateTile(Position position)
+    {
+        if (TryGetPieceAt(position, out var piece))
+        {
+            // Deactivate the piece
+            Take(position);
+        }
+        else
+        {
+            // Deactivate the tile game object
+            if (_pieces.ContainsKey(position))
+            {
+                _pieces.Remove(position);
+                OnPieceTaken(new PieceTakenEventArgs(null, position)); // Send null to indicate no piece
+            }
+        }
+    }
+
+
+    public bool Take(Position fromPosition)
         {
             if (!IsValid(fromPosition))
                 return false;

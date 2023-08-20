@@ -6,7 +6,6 @@ using UnityEngine.UIElements;
 
 public class InteractionEventArgs : EventArgs
 {
-
     public CardView Card { get; }
     public PositionView Position { get; }
 
@@ -57,9 +56,18 @@ public class BoardView : MonoBehaviour
     {
         OnCardHovered(new InteractionEventArgs(positionView, cardView));
     }
+
     internal void OnCardViewDroppedOnPositionView(PositionView positionView, CardView cardView)
     {
         OnCardDropped(new InteractionEventArgs(positionView, cardView));
+
+        // Check if the card's type is CardType.Rain
+        if (cardView.CardType == CardType.Rain)
+        {
+            // Deactivate and disable the tile when a Rain card is dropped
+            positionView.Deactivate();
+            positionView.Disable();
+        }
     }
 
     protected virtual void OnCardHovered(InteractionEventArgs eventArgs)
@@ -72,6 +80,8 @@ public class BoardView : MonoBehaviour
     {
         var handler = CardDropped;
         handler?.Invoke(this, eventArgs);
+
     }
+    
 }
 

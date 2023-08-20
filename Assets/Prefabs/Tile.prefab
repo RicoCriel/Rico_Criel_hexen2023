@@ -92,6 +92,21 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  OnDisable:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 6655316720086661111}
+        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+        m_MethodName: SetActive
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &7839335529955067779
 GameObject:
   m_ObjectHideFlags: 0
@@ -212,6 +227,12 @@ MeshRenderer:
 --- !u!4 &6275695605474651469 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 474c227e8edec744d865e9b087542c12,
+    type: 3}
+  m_PrefabInstance: {fileID: 5808806354155375270}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &6655316720086661111 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 474c227e8edec744d865e9b087542c12,
     type: 3}
   m_PrefabInstance: {fileID: 5808806354155375270}
   m_PrefabAsset: {fileID: 0}

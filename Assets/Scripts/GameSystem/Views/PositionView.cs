@@ -11,6 +11,9 @@ public class PositionView : MonoBehaviour, IDropHandler, IPointerEnterHandler
     [SerializeField]
     private UnityEvent OnDeactivate;
 
+    [SerializeField]
+    private UnityEvent OnDisable;
+
     private BoardView _boardView;
 
     public Position GridPosition
@@ -29,6 +32,9 @@ public class PositionView : MonoBehaviour, IDropHandler, IPointerEnterHandler
 
     internal void Activate()
         => OnActivate?.Invoke();
+
+    internal void Disable()
+        => OnDisable?.Invoke();
 
     public void OnPointerEnter(PointerEventData eventData)
     {

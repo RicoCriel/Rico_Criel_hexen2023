@@ -25,7 +25,6 @@ public class PieceView : MonoBehaviour
     internal void MoveTo(Position toPosition)
             => transform.position = PositionHelper.WorldPosition(toPosition);
 
-
     internal void Take()
         => gameObject.SetActive(false);
 
