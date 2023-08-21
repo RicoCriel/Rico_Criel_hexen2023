@@ -58,45 +58,45 @@ using System.Collections.Generic;
     }
     public class Board
     {
-
         public event EventHandler<PieceMovedEventArgs> PieceMoved;
         public event EventHandler<PieceTakenEventArgs> PieceTaken;
         public event EventHandler<PiecePlacedEventArgs> PiecePlaced;
 
         private readonly Dictionary<Position, PieceView> _pieces = new Dictionary<Position, PieceView>();
 
-        private readonly int _radius;
+        public int Radius;
         public PieceView Playerpiece;
 
         public Board(int radius)
         {
-            _radius = radius;
+            this.Radius = radius;
         }
 
-        public bool Move(Position fromPosition, Position toPosition)
-        {
-            if (!IsValid(fromPosition))
-                return false;
+    public bool Move(Position fromPosition, Position toPosition)
+    {
+        if (!IsValid(fromPosition))
+            return false;
 
-            if (!IsValid(toPosition))
-                return false;
+        if (!IsValid(toPosition))
+            return false;
 
-            if (_pieces.ContainsKey(toPosition))
-                return false;
+        if (_pieces.ContainsKey(toPosition))
+            return false;
 
-            if (!_pieces.TryGetValue(fromPosition, out var piece))
-                return false;
+        if (!_pieces.TryGetValue(fromPosition, out var piece))
+            return false;
 
+        _pieces[toPosition] = piece;
+        _pieces.Remove(fromPosition);
 
-            _pieces[toPosition] = piece;
-            _pieces.Remove(fromPosition);
+        piece.MoveTo(toPosition); // Update the piece's position
 
-            OnPieceMoved(new PieceMovedEventArgs(piece, fromPosition, toPosition));
+        OnPieceMoved(new PieceMovedEventArgs(piece, fromPosition, toPosition));
 
-            return true;
-        }
+        return true;
+    }
 
-        public bool Place(Position toPosition, PieceView piece)
+    public bool Place(Position toPosition, PieceView piece)
         {
             if (!IsValid(toPosition))
                 return false;
@@ -137,27 +137,28 @@ using System.Collections.Generic;
 
 
     public bool Take(Position fromPosition)
-        {
-            if (!IsValid(fromPosition))
-                return false;
+    {
+        if (!IsValid(fromPosition))
+            return false;
 
-            if (!_pieces.TryGetValue(fromPosition, out var piece))
-                return false;
+        if (!_pieces.TryGetValue(fromPosition, out var piece))
+            return false;
 
-            _pieces.Remove(fromPosition);
+        _pieces.Remove(fromPosition);
 
-            OnPieceTaken(new PieceTakenEventArgs(piece, fromPosition));
+        OnPieceTaken(new PieceTakenEventArgs(piece, fromPosition));
 
-            return true;
-        }
+        return true;
+    }
 
-        public bool TryGetPieceAt(Position position, out PieceView piece)
+
+    public bool TryGetPieceAt(Position position, out PieceView piece)
             => _pieces.TryGetValue(position, out piece);
 
         public bool IsValid(Position position)
-            => (-_radius < position.Q && position.Q < _radius)
-            && (-_radius < position.R && position.R < _radius)
-            && (-_radius < position.S && position.S < _radius)
+            => (-Radius < position.Q && position.Q < Radius)
+            && (-Radius < position.R && position.R < Radius)
+            && (-Radius < position.S && position.S < Radius)
             && position.Q + position.R + position.S == 0;
 
 

@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class PositionHelper
 {
@@ -26,5 +25,27 @@ public class PositionHelper
         return new Vector3(x, 0, z);
     }
 
+    public static Position GetRandomGridPosition(int maxRadius)
+    {
+        int randomQ = Random.Range(-maxRadius, maxRadius);
+        int randomR = Random.Range(Mathf.Max(-maxRadius, -randomQ - maxRadius), Mathf.Min(maxRadius, -randomQ + maxRadius));
+        int randomS = -randomQ - randomR;
 
+        Position randomPosition = new Position(randomQ, randomR, randomS);
+
+        if (!IsValid(randomPosition, maxRadius))
+        {
+            return GetRandomGridPosition(maxRadius);
+        }
+
+        return randomPosition;
+    }
+
+    public static bool IsValid(Position position, int maxRadius)
+    {
+        return (-maxRadius < position.Q && position.Q < maxRadius)
+            && (-maxRadius < position.R && position.R < maxRadius)
+            && (-maxRadius < position.S && position.S < maxRadius)
+            && position.Q + position.R + position.S == 0;
+    }
 }

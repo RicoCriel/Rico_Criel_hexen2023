@@ -28,10 +28,27 @@ public class GameLoop : MonoBehaviour
         _boardView.CardHovered += CardHovered;
         _boardView.CardDropped += CardDropped;
 
+        //uncomment if randomisation is not needed
+        //var pieceViews = FindObjectsOfType<PieceView>();
+        //foreach (var pieceView in pieceViews)
+        //{
+        //    var gridPosition = PositionHelper.GridPosition(pieceView.Position);
+        //    _board.Place(gridPosition, pieceView); // Use gridPosition when placing
+        //    pieceView.GridPosition = gridPosition; // Set the grid position in the PieceView
+        //    if (pieceView.IsPlayer)
+        //    {
+        //        _playerPieceView = pieceView;
+        //        _board.Playerpiece = pieceView;
+        //    }
+        //}
+
         var pieceViews = FindObjectsOfType<PieceView>();
         foreach (var pieceView in pieceViews)
         {
-            _board.Place(PositionHelper.GridPosition(pieceView.Position), pieceView);
+            var gridPosition = PositionHelper.GetRandomGridPosition(_board.Radius);
+            _board.Place(gridPosition, pieceView);
+            pieceView.MoveTo(gridPosition);
+
             if (pieceView.IsPlayer)
             {
                 _playerPieceView = pieceView;
@@ -42,13 +59,6 @@ public class GameLoop : MonoBehaviour
 
     private void CardDropped(object sender, InteractionEventArgs e)
     {
-        //if (_board.TryGetPieceAt(e.Position.GridPosition, out var piece))
-        //    Debug.Log($"Found Piece: {piece}");
-
-        //Debug.Log($"{e.Card.CardType} dropped on {e.Position.GridPosition} ");
-
-        Debug.Log(_stateMachine.CurrentStateName);
-
         if (e != null &&
             _boardView.ActivatedPositions.Contains(e.Position.GridPosition))
         {
@@ -64,8 +74,6 @@ public class GameLoop : MonoBehaviour
 
     private void CardHovered(object sender, InteractionEventArgs e)
     {
-        //Debug.Log($"{e.Card.CardType} hovered on {e.Position.GridPosition}");
-
         var positions = _engine.MoveSet.For(
             e.Card.CardType).Positions(
             PositionHelper.GridPosition(_playerPieceView.Position),
