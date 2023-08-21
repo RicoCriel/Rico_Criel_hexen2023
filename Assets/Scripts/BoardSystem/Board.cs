@@ -118,10 +118,11 @@ using System.Collections.Generic;
     //new method for rainmoveset
     public void DeactivateTile(Position position)
     {
-        if (TryGetPieceAt(position, out var piece))
+        if (TryGetPieceAt(position, out var piece) && !piece.IsPlayer)
         {
             // Deactivate the piece
-            Take(position);
+            _pieces.Remove(position);
+            OnPieceTaken(new PieceTakenEventArgs(piece, position));
         }
         else
         {

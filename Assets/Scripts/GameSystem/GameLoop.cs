@@ -20,7 +20,7 @@ public class GameLoop : MonoBehaviour
 
         _board = new Board(4);
         _board.PieceMoved += (s, e) => e.Piece.gameObject.transform.position = PositionHelper.WorldPosition(e.ToPosition);
-        _board.PieceTaken += (s, e) => e.Piece.Take();
+        _board.PieceTaken += (s, e) => e.Piece?.Take(); //checks if the piece is not null and then executes take
 
         _engine = new Engine(_board);
 
