@@ -15,25 +15,42 @@ internal class EnemyState: State
     {
         Debug.Log("EnemyState Active");
 
-        // Clear the old piece positions from the board
-        _board.ClearBoard();
-
         var pieceViews = GameObject.FindObjectsOfType<PieceView>();
 
         foreach (var pieceView in pieceViews)
         {
             if (!pieceView.IsPlayer)
             {
-                var gridPosition = PositionHelper.GetRandomGridPosition(_board.Radius);
-                _board.Place(gridPosition, pieceView);
-                pieceView.MoveTo(gridPosition);
-                StateMachine.MoveTo(States.Player);
+                // Generate a random grid position
+                Position gridPosition;
+                do
+                {
+                    gridPosition = PositionHelper.GetRandomGridPosition(_board.Radius);
+                }
+                while (_board.IsPositionOccupied(gridPosition)); // Check if position is occupied
+
+                // Check if the current piece is on the board and is not the player's piece
+                if (_board.TryGetPieceAt(pieceView.GridPosition, out var existingPiece) && !existingPiece.IsPlayer)
+                {
+                    // Move the existing piece to the new position
+                    _board.Move(pieceView.GridPosition, gridPosition);
+                    pieceView.MoveTo(gridPosition);
+                }
             }
         }
+
+        StateMachine.MoveTo(States.Player); // Move to Player state after moving existing pieces
     }
+
+
+
+
+
 
     public override void OnExit()
     {
+        // Clear the old piece positions from the board
+        //_board.ClearBoard();
         Debug.Log("MovingStates");
     }
 

@@ -58,13 +58,6 @@ internal class BlitzMoveSet : MoveSet
 
     internal override bool Execute(List<Position> positions)
     {
-        //foreach (var position in positions)
-        //{
-        //    Board.Take(position);
-        //}
-
-        //return true;
-
         bool piecesRemoved = false;
 
         foreach (var position in positions)

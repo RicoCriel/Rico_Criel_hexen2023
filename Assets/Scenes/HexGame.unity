@@ -1630,6 +1630,11 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1615386008}
     m_Modifications:
+    - target: {fileID: 2828271820550556685, guid: 3c7c18d6760a9584282b6bd879877cd5,
+        type: 3}
+      propertyPath: _cardType
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 2828271820550557172, guid: 3c7c18d6760a9584282b6bd879877cd5,
         type: 3}
       propertyPath: m_Name

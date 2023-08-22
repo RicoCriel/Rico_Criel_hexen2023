@@ -18,7 +18,7 @@ public class GameLoop : MonoBehaviour
 
         //comment this out and uncomment the commented code to return to logic without statemachine design
         _stateMachine = new StateMachine();
-        _stateMachine.Register(States.Player, new PlayerState());
+        _stateMachine.Register(States.Player, new PlayerState(_board));
         _stateMachine.Register(States.Enemy, new EnemyState(_board));
         _stateMachine.InitialState = States.Player;
 
@@ -43,29 +43,6 @@ public class GameLoop : MonoBehaviour
                 _board.Playerpiece = pieceView;
             }
         }
-
-        //if (_stateMachine.CurrentStateName == States.Enemy)
-        //{
-        //    //var pieceViews = FindObjectsOfType<PieceView>();
-        //    //foreach (var pieceView in pieceViews)
-        //    //{
-        //    //    if(!pieceView.IsPlayer)
-        //    //    {
-        //    //        var gridPosition = PositionHelper.GetRandomGridPosition(_board.Radius);
-        //    //        _board.Place(gridPosition, pieceView);
-        //    //        pieceView.MoveTo(gridPosition);
-        //    //        _stateMachine.MoveTo(States.Player);
-        //    //    }
-                
-
-        //    //    //if (pieceView.IsPlayer)
-        //    //    //{
-        //    //    //    _playerPieceView = pieceView;
-        //    //    //    _board.Playerpiece = pieceView;
-        //    //    //}
-        //    //}
-        //}
-
     }
 
     private void CardDropped(object sender, InteractionEventArgs e)
@@ -73,14 +50,18 @@ public class GameLoop : MonoBehaviour
         if (e != null &&
             _boardView.ActivatedPositions.Contains(e.Position.GridPosition))
         {
+            //_engine.Drop(
+            //        e.Card.CardType,
+            //        _boardView.ActivatedPositions);
+
             if (_stateMachine.CurrentStateName == States.Player)
             {
                 //remove condition if not needed
                 _engine.Drop(
                     e.Card.CardType,
                     _boardView.ActivatedPositions);
+
                 _stateMachine.MoveTo(States.Enemy);
-                //Debug.Log(_stateMachine.CurrentStateName);
             }
         }
     }

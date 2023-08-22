@@ -67,7 +67,10 @@ using System.Collections.Generic;
         public int Radius;
         public PieceView Playerpiece;
 
-        public Board(int radius)
+    private readonly List<Position> _occupiedPositions = new List<Position>();
+
+
+    public Board(int radius)
         {
             this.Radius = radius;
         }
@@ -151,8 +154,13 @@ using System.Collections.Generic;
             return true;
         }
 
+    public bool IsPositionAvailable(Position position)
+    {
+        return !_pieces.ContainsKey(position);
+    }
 
-        public bool TryGetPieceAt(Position position, out PieceView piece)
+
+    public bool TryGetPieceAt(Position position, out PieceView piece)
                 => _pieces.TryGetValue(position, out piece);
 
         public bool IsValid(Position position)
