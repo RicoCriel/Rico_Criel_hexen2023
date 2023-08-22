@@ -58,22 +58,49 @@ internal class BlitzMoveSet : MoveSet
 
     internal override bool Execute(List<Position> positions)
     {
-        bool piecesRemoved = false;
+        bool pieceRemoved = false;
 
-        foreach (var position in positions)
+        // Filter the positions to only consider enemy positions
+        var enemyPositions = positions
+            .Where(position => Board.TryGetPieceAt(position, out var piece) && !piece.IsPlayer)
+            .ToList();
+
+        if (enemyPositions.Count > 0)
         {
-            if (Board.TryGetPieceAt(position, out var piece))
+            // Randomly select one enemy position to remove
+            int randomIndex = UnityEngine.Random.Range(0, enemyPositions.Count);
+            Position positionToRemove = enemyPositions[randomIndex];
+
+            if (Board.IsValid(positionToRemove))
             {
-                if (!piece.IsPlayer && Board.IsValid(position))
-                {
-                    Board.Take(position);
-                    piecesRemoved = true;
-                }
+                Board.Take(positionToRemove);
+                pieceRemoved = true;
             }
         }
 
-        return piecesRemoved;
+        return pieceRemoved;
     }
+
+
+
+    //internal override bool Execute(List<Position> positions)
+    //{
+    //    bool piecesRemoved = false;
+
+    //    foreach (var position in positions)
+    //    {
+    //        if (Board.TryGetPieceAt(position, out var piece))
+    //        {
+    //            if (!piece.IsPlayer && Board.IsValid(position))
+    //            {
+    //                Board.Take(position);
+    //                piecesRemoved = true;
+    //            }
+    //        }
+    //    }
+
+    //    return piecesRemoved;
+    //}
 }
 
 
