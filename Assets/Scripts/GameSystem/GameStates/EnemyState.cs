@@ -14,6 +14,10 @@ internal class EnemyState: State
     public override void OnEnter()
     {
         Debug.Log("EnemyState Active");
+
+        // Clear the old piece positions from the board
+        _board.ClearBoard();
+
         var pieceViews = GameObject.FindObjectsOfType<PieceView>();
 
         foreach (var pieceView in pieceViews)
