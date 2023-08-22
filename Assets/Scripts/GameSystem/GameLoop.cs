@@ -14,9 +14,14 @@ public class GameLoop : MonoBehaviour
     {
         //comment this out and uncomment the commented code to return to logic without statemachine design
         _stateMachine = new StateMachine();
-        _stateMachine.Register(States.Start, new StartState());
-        _stateMachine.Register(States.Playing, new PlayState());
-        _stateMachine.InitialState = States.Start;
+        //_stateMachine.Register(States.Start, new StartState());
+        //_stateMachine.Register(States.Playing, new PlayState());
+        //_stateMachine.InitialState = States.Start;
+
+        _stateMachine.Register(States.Player, new PlayerState());
+        _stateMachine.Register(States.Enemy, new EnemyState());
+        _stateMachine.InitialState = States.Player;
+
 
         _board = new Board(4);
         _board.PieceMoved += (s, e) => e.Piece.gameObject.transform.position = PositionHelper.WorldPosition(e.ToPosition);
