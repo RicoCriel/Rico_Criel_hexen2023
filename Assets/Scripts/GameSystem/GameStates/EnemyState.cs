@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 internal class EnemyState: State
@@ -15,32 +16,37 @@ internal class EnemyState: State
     {
         Debug.Log("EnemyState Active");
 
-        var pieceViews = GameObject.FindObjectsOfType<PieceView>();
+        var enemyPieceViews = GameObject.FindObjectsOfType<PieceView>()
+            .Where(pieceView => !pieceView.IsPlayer)
+            .ToList();
 
-        foreach (var pieceView in pieceViews)
+        var availablePositions = _board.GetAllPositions()
+            .Where(position => _board.IsValid(position) && _board.IsPositionAvailable(position))
+            .ToList();
+
+        foreach (var enemyPieceView in enemyPieceViews)
         {
-            if (!pieceView.IsPlayer)
+            if (availablePositions.Count == 0)
             {
-                // Generate a random grid position
-                Position gridPosition;
-                do
-                {
-                    gridPosition = PositionHelper.GetRandomGridPosition(_board.Radius);
-                }
-                while (_board.IsPositionOccupied(gridPosition)); // Check if position is occupied
-
-                // Check if the current piece is on the board and is not the player's piece
-                if (_board.TryGetPieceAt(pieceView.GridPosition, out var existingPiece) && !existingPiece.IsPlayer)
-                {
-                    // Move the existing piece to the new position
-                    _board.Move(pieceView.GridPosition, gridPosition);
-                    pieceView.MoveTo(gridPosition);
-                }
+                Debug.LogWarning("No available positions left for enemy pieces.");
+                break;
             }
+
+            // Randomly select a position from the available positions
+            int randomIndex = UnityEngine.Random.Range(0, availablePositions.Count);
+            Position gridPosition = availablePositions[randomIndex];
+
+            // Move the enemy piece to the new position
+            _board.Move(enemyPieceView.GridPosition, gridPosition);
+            enemyPieceView.MoveTo(gridPosition);
+
+            availablePositions.RemoveAt(randomIndex); // Remove the selected position from available positions
         }
 
         StateMachine.MoveTo(States.Player); // Move to Player state after moving existing pieces
     }
+
+
 
 
 

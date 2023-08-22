@@ -159,6 +159,22 @@ using System.Collections.Generic;
         return !_pieces.ContainsKey(position);
     }
 
+    public List<Position> GetAllPositions()
+    {
+        List<Position> positions = new List<Position>();
+        for (int q = -Radius; q <= Radius; q++)
+        {
+            int r1 = Math.Max(-Radius, -q - Radius);
+            int r2 = Math.Min(Radius, -q + Radius);
+            for (int r = r1; r <= r2; r++)
+            {
+                positions.Add(new Position(q, r, -q - r));
+            }
+        }
+        return positions;
+    }
+
+
 
     public bool TryGetPieceAt(Position position, out PieceView piece)
                 => _pieces.TryGetValue(position, out piece);
