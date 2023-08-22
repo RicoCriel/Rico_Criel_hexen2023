@@ -72,41 +72,40 @@ using System.Collections.Generic;
             this.Radius = radius;
         }
 
-    public bool Move(Position fromPosition, Position toPosition)
-    {
-        if (!IsValid(fromPosition))
-            return false;
-
-        if (!IsValid(toPosition))
-            return false;
-
-        if (_pieces.ContainsKey(toPosition))
-            return false;
-
-        if (!_pieces.TryGetValue(fromPosition, out var piece))
-            return false;
-
-        _pieces[toPosition] = piece;
-        _pieces.Remove(fromPosition);
-
-        piece.MoveTo(toPosition); // Update the piece's position
-
-        OnPieceMoved(new PieceMovedEventArgs(piece, fromPosition, toPosition));
-
-        return true;
-    }
-
-    public bool Place(Position toPosition, PieceView piece)
+        public bool Move(Position fromPosition, Position toPosition)
         {
+            if (!IsValid(fromPosition))
+                return false;
+
             if (!IsValid(toPosition))
                 return false;
 
             if (_pieces.ContainsKey(toPosition))
                 return false;
 
-            if (_pieces.ContainsValue(piece))
+            if (!_pieces.TryGetValue(fromPosition, out var piece))
                 return false;
 
+            _pieces[toPosition] = piece;
+            _pieces.Remove(fromPosition);
+
+            piece.MoveTo(toPosition); // Update the piece's position
+
+            OnPieceMoved(new PieceMovedEventArgs(piece, fromPosition, toPosition));
+
+            return true;
+        }
+
+        public bool Place(Position toPosition, PieceView piece)
+        {
+            if (!IsValid(toPosition))
+                return false;
+
+            if (_pieces.ContainsKey(toPosition))
+                return false;  // Avoid placing on an occupied position
+
+            if (_pieces.ContainsValue(piece))
+                return false;  // Avoid placing the same piece twice
 
             _pieces[toPosition] = piece;
 
@@ -115,45 +114,46 @@ using System.Collections.Generic;
             return true;
         }
 
-    //new method for rainmoveset
-    public void DeactivateTile(Position position)
-    {
-        if (TryGetPieceAt(position, out var piece) && !piece.IsPlayer)
+
+        //new method for rainmoveset
+        public void DeactivateTile(Position position)
         {
-            // Deactivate the piece
-            _pieces.Remove(position);
-            OnPieceTaken(new PieceTakenEventArgs(piece, position));
-        }
-        else
-        {
-            // Deactivate the tile game object
-            if (_pieces.ContainsKey(position))
+            if (TryGetPieceAt(position, out var piece) && !piece.IsPlayer)
             {
+                // Deactivate the piece
                 _pieces.Remove(position);
-                OnPieceTaken(new PieceTakenEventArgs(null, position)); // Send null to indicate no piece
+                OnPieceTaken(new PieceTakenEventArgs(piece, position));
+            }
+            else
+            {
+                // Deactivate the tile game object
+                if (_pieces.ContainsKey(position))
+                {
+                    _pieces.Remove(position);
+                    OnPieceTaken(new PieceTakenEventArgs(null, position)); // Send null to indicate no piece
+                }
             }
         }
-    }
 
 
-    public bool Take(Position fromPosition)
-    {
-        if (!IsValid(fromPosition))
-            return false;
+        public bool Take(Position fromPosition)
+        {
+            if (!IsValid(fromPosition))
+                return false;
 
-        if (!_pieces.TryGetValue(fromPosition, out var piece))
-            return false;
+            if (!_pieces.TryGetValue(fromPosition, out var piece))
+                return false;
 
-        _pieces.Remove(fromPosition);
+            _pieces.Remove(fromPosition);
 
-        OnPieceTaken(new PieceTakenEventArgs(piece, fromPosition));
+            OnPieceTaken(new PieceTakenEventArgs(piece, fromPosition));
 
-        return true;
-    }
+            return true;
+        }
 
 
-    public bool TryGetPieceAt(Position position, out PieceView piece)
-            => _pieces.TryGetValue(position, out piece);
+        public bool TryGetPieceAt(Position position, out PieceView piece)
+                => _pieces.TryGetValue(position, out piece);
 
         public bool IsValid(Position position)
             => (-Radius < position.Q && position.Q < Radius)
@@ -161,9 +161,16 @@ using System.Collections.Generic;
             && (-Radius < position.S && position.S < Radius)
             && position.Q + position.R + position.S == 0;
 
+        public void ClearBoard()
+        {
+            _pieces.Clear();
+        }
 
-        #region EventTriggers
-        protected virtual void OnPieceMoved(PieceMovedEventArgs eventArgs)
+    
+
+
+    #region EventTriggers
+    protected virtual void OnPieceMoved(PieceMovedEventArgs eventArgs)
         {
             var handler = PieceMoved;
             handler?.Invoke(this, eventArgs);

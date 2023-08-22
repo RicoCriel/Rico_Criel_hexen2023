@@ -8,19 +8,6 @@ public class PieceView : MonoBehaviour
     {
         var gridPosition = PositionHelper.GridPosition(transform.position);
         transform.position = PositionHelper.WorldPosition(gridPosition);
-
-        //if (!_isPlayer)
-        //{
-        //    // Get a random position within the valid grid positions
-        //    var randomGridPosition = PositionHelper.GetRandomGridPosition(4);
-        //    transform.position = PositionHelper.WorldPosition(randomGridPosition);
-        //}
-        //else
-        //{
-        //    // Use the existing grid position for player pieces
-        //    var gridPosition = PositionHelper.GridPosition(transform.position);
-        //    transform.position = PositionHelper.WorldPosition(gridPosition);
-        //}
     }
 
     public Vector3 Position => transform.position;

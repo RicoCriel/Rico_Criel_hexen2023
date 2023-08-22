@@ -28,33 +28,35 @@ public class GameLoop : MonoBehaviour
         _boardView.CardHovered += CardHovered;
         _boardView.CardDropped += CardDropped;
 
-        //uncomment if randomisation is not needed
-        //var pieceViews = FindObjectsOfType<PieceView>();
-        //foreach (var pieceView in pieceViews)
-        //{
-        //    var gridPosition = PositionHelper.GridPosition(pieceView.Position);
-        //    _board.Place(gridPosition, pieceView); // Use gridPosition when placing
-        //    pieceView.GridPosition = gridPosition; // Set the grid position in the PieceView
-        //    if (pieceView.IsPlayer)
-        //    {
-        //        _playerPieceView = pieceView;
-        //        _board.Playerpiece = pieceView;
-        //    }
-        //}
+        ResetGameState();
 
+        //uncomment if randomisation is not needed
         var pieceViews = FindObjectsOfType<PieceView>();
         foreach (var pieceView in pieceViews)
         {
-            var gridPosition = PositionHelper.GetRandomGridPosition(_board.Radius);
-            _board.Place(gridPosition, pieceView);
-            pieceView.MoveTo(gridPosition);
-
+            var gridPosition = PositionHelper.GridPosition(pieceView.Position);
+            _board.Place(gridPosition, pieceView); // Use gridPosition when placing
+            pieceView.GridPosition = gridPosition; // Set the grid position in the PieceView
             if (pieceView.IsPlayer)
             {
                 _playerPieceView = pieceView;
                 _board.Playerpiece = pieceView;
             }
         }
+
+        //var pieceViews = FindObjectsOfType<PieceView>();
+        //foreach (var pieceView in pieceViews)
+        //{
+        //    var gridPosition = PositionHelper.GetRandomGridPosition(_board.Radius);
+        //    _board.Place(gridPosition, pieceView);
+        //    pieceView.MoveTo(gridPosition);
+
+        //    if (pieceView.IsPlayer)
+        //    {
+        //        _playerPieceView = pieceView;
+        //        _board.Playerpiece = pieceView;
+        //    }
+        //}
     }
 
     private void CardDropped(object sender, InteractionEventArgs e)
@@ -81,4 +83,13 @@ public class GameLoop : MonoBehaviour
 
         _boardView.ActivatedPositions = positions;
     }
+
+
+    private void ResetGameState()
+    {
+        _board.ClearBoard();  // Clear the board by removing all pieces
+        _boardView.ActivatedPositions = null;  // Clear any activated positions
+        _stateMachine.InitialState = States.Start;  // Reset the state machine to the starting state
+    }
+
 }

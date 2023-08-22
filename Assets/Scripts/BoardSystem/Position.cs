@@ -106,12 +106,12 @@ public struct Position
         var results = new List<Position>();
         var hex = Add(centerPosition.Scale(Direction(4), radius));
 
-        for (int i = 0; i <= 5; i++)
+        for (int i = 0; i < 6; i++)
         {
-            for (int j = 0; j <= radius; j++)
+            for (int j = 0; j < radius; j++)
             {
-                results.Append(hex);
-                hex = Neighbor(hex, i);
+                results.Add(hex);
+                hex = hex.Neighbor(i);
             }
         }
         return results;
