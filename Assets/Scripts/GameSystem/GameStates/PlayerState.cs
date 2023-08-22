@@ -1,10 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using UnityEngine;
 
 internal class PlayerState : State
 {
+    public override void OnEnter()
+    {
+        Debug.Log("PlayerState Active");
+    }
 
+    public override void OnExit()
+    {
+        Debug.Log("MovingStates");
+    }
 }

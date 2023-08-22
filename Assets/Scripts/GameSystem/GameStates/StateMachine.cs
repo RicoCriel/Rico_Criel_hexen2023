@@ -6,7 +6,7 @@ using UnityEngine;
 public enum States
 {
     //add states here
-    Start, Playing, Player, Enemy
+    /*Start, Playing,*/ Player, Enemy
 }
 
 public class StateMachine

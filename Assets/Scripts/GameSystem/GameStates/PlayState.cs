@@ -4,24 +4,24 @@ using UnityEngine.SceneManagement;
 
 public class PlayState : State
 {
-    private PlayView _playView; 
+    //private PlayView _playView; 
 
-    public PlayState()
-    {
+    //public PlayState()
+    //{
 
-    }
+    //}
 
-    public override void OnEnter()
-    {
-        _playView = GameObject.FindObjectOfType<PlayView>();
-        if(_playView != null)
-        {
-            _playView.Cards.SetActive(true);
-        }
-    }
+    //public override void OnEnter()
+    //{
+    //    _playView = GameObject.FindObjectOfType<PlayView>();
+    //    if(_playView != null)
+    //    {
+    //        _playView.Cards.SetActive(true);
+    //    }
+    //}
 
-    public override void OnExit()
-    {
-        SceneManager.UnloadSceneAsync("HexGame");
-    }
+    //public override void OnExit()
+    //{
+    //    SceneManager.UnloadSceneAsync("HexGame");
+    //}
 }

@@ -12,20 +12,15 @@ public class GameLoop : MonoBehaviour
 
     public void OnEnable()
     {
-        //comment this out and uncomment the commented code to return to logic without statemachine design
-        _stateMachine = new StateMachine();
-        //_stateMachine.Register(States.Start, new StartState());
-        //_stateMachine.Register(States.Playing, new PlayState());
-        //_stateMachine.InitialState = States.Start;
-
-        _stateMachine.Register(States.Player, new PlayerState());
-        _stateMachine.Register(States.Enemy, new EnemyState());
-        _stateMachine.InitialState = States.Player;
-
-
         _board = new Board(4);
         _board.PieceMoved += (s, e) => e.Piece.gameObject.transform.position = PositionHelper.WorldPosition(e.ToPosition);
         _board.PieceTaken += (s, e) => e.Piece?.Take(); //checks if the piece is not null and then executes take
+
+        //comment this out and uncomment the commented code to return to logic without statemachine design
+        _stateMachine = new StateMachine();
+        _stateMachine.Register(States.Player, new PlayerState());
+        _stateMachine.Register(States.Enemy, new EnemyState(_board));
+        _stateMachine.InitialState = States.Player;
 
         _engine = new Engine(_board);
 
@@ -49,19 +44,28 @@ public class GameLoop : MonoBehaviour
             }
         }
 
-        //var pieceViews = FindObjectsOfType<PieceView>();
-        //foreach (var pieceView in pieceViews)
+        //if (_stateMachine.CurrentStateName == States.Enemy)
         //{
-        //    var gridPosition = PositionHelper.GetRandomGridPosition(_board.Radius);
-        //    _board.Place(gridPosition, pieceView);
-        //    pieceView.MoveTo(gridPosition);
+        //    //var pieceViews = FindObjectsOfType<PieceView>();
+        //    //foreach (var pieceView in pieceViews)
+        //    //{
+        //    //    if(!pieceView.IsPlayer)
+        //    //    {
+        //    //        var gridPosition = PositionHelper.GetRandomGridPosition(_board.Radius);
+        //    //        _board.Place(gridPosition, pieceView);
+        //    //        pieceView.MoveTo(gridPosition);
+        //    //        _stateMachine.MoveTo(States.Player);
+        //    //    }
+                
 
-        //    if (pieceView.IsPlayer)
-        //    {
-        //        _playerPieceView = pieceView;
-        //        _board.Playerpiece = pieceView;
-        //    }
+        //    //    //if (pieceView.IsPlayer)
+        //    //    //{
+        //    //    //    _playerPieceView = pieceView;
+        //    //    //    _board.Playerpiece = pieceView;
+        //    //    //}
+        //    //}
         //}
+
     }
 
     private void CardDropped(object sender, InteractionEventArgs e)
@@ -69,12 +73,14 @@ public class GameLoop : MonoBehaviour
         if (e != null &&
             _boardView.ActivatedPositions.Contains(e.Position.GridPosition))
         {
-            if (_stateMachine.CurrentStateName == States.Playing)
+            if (_stateMachine.CurrentStateName == States.Player)
             {
                 //remove condition if not needed
                 _engine.Drop(
                     e.Card.CardType,
                     _boardView.ActivatedPositions);
+                _stateMachine.MoveTo(States.Enemy);
+                //Debug.Log(_stateMachine.CurrentStateName);
             }
         }
     }
@@ -94,7 +100,7 @@ public class GameLoop : MonoBehaviour
     {
         _board.ClearBoard();  // Clear the board by removing all pieces
         _boardView.ActivatedPositions = null;  // Clear any activated positions
-        _stateMachine.InitialState = States.Start;  // Reset the state machine to the starting state
+        _stateMachine.InitialState = States.Player;  // Reset the state machine to the starting state
     }
 
 }
