@@ -13,6 +13,7 @@ public class MoveSetCollection
         _movesets.Add(CardType.Asteroid, new AsteroidMoveSet(board));
         _movesets.Add(CardType.Rain, new RainMoveSet(board));
         _movesets.Add(CardType.Ring, new RingMoveSet(board));
+        _movesets.Add(CardType.Blitz, new BlitzMoveSet(board)); 
     }
 
     public IMoveSet For(CardType type) => _movesets[type];

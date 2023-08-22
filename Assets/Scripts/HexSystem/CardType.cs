@@ -7,5 +7,5 @@ using System.Threading.Tasks;
 
     public enum CardType
     {
-        Teleport, Push, Swipe, Slash, Asteroid, Rain, Ring
+        Teleport, Push, Swipe, Slash, Asteroid, Rain, Ring, Blitz
     }
