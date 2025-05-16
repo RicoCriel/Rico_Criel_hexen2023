@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class InteractionEventArgs : EventArgs
 {
@@ -51,7 +50,6 @@ public class BoardView : MonoBehaviour
             _positionViewsCached.Add(positionView.GridPosition, positionView);
     }
 
-
     internal void OnCardViewHoveredOnPositionView(PositionView positionView, CardView cardView)
     {
         OnCardHovered(new InteractionEventArgs(positionView, cardView));
@@ -61,10 +59,8 @@ public class BoardView : MonoBehaviour
     {
         OnCardDropped(new InteractionEventArgs(positionView, cardView));
 
-        // Check if the card's type is CardType.Rain
         if (cardView.CardType == CardType.Rain)
         {
-            // Deactivate and disable the tile when a Rain card is dropped
             positionView.Deactivate();
             positionView.Disable();
         }
@@ -80,8 +76,12 @@ public class BoardView : MonoBehaviour
     {
         var handler = CardDropped;
         handler?.Invoke(this, eventArgs);
-
     }
-    
+
+    public bool TryGetPositionView(Position position, out PositionView positionView)
+    {
+        return _positionViewsCached.TryGetValue(position, out positionView);
+    }
+
 }
 

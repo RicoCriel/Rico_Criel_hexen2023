@@ -1,158 +1,232 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 
-    public class PieceMovedEventArgs : EventArgs
+public class PieceMovedEventArgs : EventArgs
+{
+    public PieceView Piece { get; }
+
+    public Position FromPosition { get; }
+
+    public Position ToPosition { get; }
+
+    public PieceMovedEventArgs(PieceView piece, Position fromPosition, Position toPosition)
     {
-        public PieceView Piece { get; }
-
-        public Position FromPosition { get; }
-
-        public Position ToPosition { get; }
-
-        public PieceMovedEventArgs(PieceView piece, Position fromPosition, Position toPosition)
-        {
-            Piece = piece;
-            FromPosition = fromPosition;
-            ToPosition = toPosition;
-        }
+        Piece = piece;
+        FromPosition = fromPosition;
+        ToPosition = toPosition;
     }
+}
 
-    public class PieceTakenEventArgs : EventArgs
+public class PieceUndoMoveEventArgs : EventArgs
+{
+    public PieceView Piece { get; }
+
+    public Position FromPosition { get; }
+
+    public Position ToPosition { get; }
+
+    public PieceUndoMoveEventArgs(PieceView piece, Position fromPosition, Position toPosition)
     {
-        public PieceView Piece { get; }
-
-        public Position FromPosition { get; }
-
-        public PieceTakenEventArgs(PieceView piece, Position fromPosition)
-        {
-            Piece = piece;
-            FromPosition = fromPosition;
-        }
+        Piece = piece;
+        FromPosition = fromPosition;
+        ToPosition = toPosition;
     }
+}
 
-    public class PiecePlacedEventArgs : EventArgs
+public class PieceTakenEventArgs : EventArgs
+{
+    public PieceView Piece { get; }
+
+    public Position FromPosition { get; }
+
+    public PieceTakenEventArgs(PieceView piece, Position fromPosition)
     {
-        public PieceView Piece { get; }
-
-        public Position ToPosition { get; }
-
-        public PiecePlacedEventArgs(PieceView piece, Position toPosition)
-        {
-            Piece = piece;
-            ToPosition = toPosition;
-        }
+        Piece = piece;
+        FromPosition = fromPosition;
     }
+}
 
+public class PieceUndoTakeEventArgs : EventArgs
+{
+    public PieceView Piece { get; }
 
-    public class PositionsActivatedEventArgs : EventArgs
+    public Position FromPosition { get; }
+
+    public PieceUndoTakeEventArgs(PieceView piece, Position fromPosition)
     {
-        public List<Position> OldPositions { get; }
-        public List<Position> NewPositions { get; }
-
-        public PositionsActivatedEventArgs(List<Position> oldPositions, List<Position> newPositions)
-        {
-            OldPositions = oldPositions;
-            NewPositions = newPositions;
-        }
+        Piece = piece;
+        FromPosition = fromPosition;
     }
-    public class Board
+}
+
+public class PiecePlacedEventArgs : EventArgs
+{
+    public PieceView Piece { get; }
+
+    public Position ToPosition { get; }
+
+    public PiecePlacedEventArgs(PieceView piece, Position toPosition)
     {
-        public event EventHandler<PieceMovedEventArgs> PieceMoved;
-        public event EventHandler<PieceTakenEventArgs> PieceTaken;
-        public event EventHandler<PiecePlacedEventArgs> PiecePlaced;
+        Piece = piece;
+        ToPosition = toPosition;
+    }
+}
 
-        private readonly Dictionary<Position, PieceView> _pieces = new Dictionary<Position, PieceView>();
+public class PositionsActivatedEventArgs : EventArgs
+{
+    public List<Position> OldPositions { get; }
+    public List<Position> NewPositions { get; }
 
-        public int Radius;
-        public PieceView Playerpiece;
+    public PositionsActivatedEventArgs(List<Position> oldPositions, List<Position> newPositions)
+    {
+        OldPositions = oldPositions;
+        NewPositions = newPositions;
+    }
+}
+public class Board
+{
+    public event EventHandler<PieceMovedEventArgs> PieceMoved;
+    public event EventHandler<PieceUndoMoveEventArgs> PieceUndoMove;
+    public event EventHandler<PieceTakenEventArgs> PieceTaken;
+    public event EventHandler<PiecePlacedEventArgs> PiecePlaced;
+    public event EventHandler<PieceUndoTakeEventArgs> PieceUndoTake;
 
-    private readonly List<Position> _occupiedPositions = new List<Position>();
+    public Action <Position> OnTileReactivated;
+    public Action<Position> OnTileDeactivated;
 
+    private readonly Dictionary<Position, PieceView> _pieces = new Dictionary<Position, PieceView>();
+
+    public int Radius;
+    public PieceView Playerpiece;
+    public PositionView TileView;
+
+    private readonly List<Position> _updatedPositions = new List<Position>();
+    private readonly List<Position> _deactivatedTiles = new List<Position>();
+    private readonly Dictionary<Position, PieceView> _deactivatedPieces = new Dictionary<Position, PieceView>();
 
     public Board(int radius)
+    {
+        this.Radius = radius;
+    }
+
+    public bool Move(Position fromPosition, Position toPosition)
+    {
+        if (!IsValid(fromPosition))
+            return false;
+
+        if (!IsValid(toPosition))
+            return false;
+
+        if (_pieces.ContainsKey(toPosition))
+            return false;
+
+        if (!_pieces.TryGetValue(fromPosition, out var piece))
+            return false;
+
+        _pieces[toPosition] = piece;
+        _pieces.Remove(fromPosition);
+
+        piece.MoveTo(toPosition); 
+
+        OnPieceMoved(new PieceMovedEventArgs(piece, fromPosition, toPosition));
+        _updatedPositions.Add(toPosition);
+        return true;
+    }
+
+    public bool UndoMove(Position fromPosition, Position toPosition)
+    {
+        if (!_pieces.TryGetValue(fromPosition, out var piece))
         {
-            this.Radius = radius;
+            Debug.LogWarning($"UndoMove failed: No piece at {fromPosition}");
+            return false;
         }
 
-        public bool Move(Position fromPosition, Position toPosition)
+        _pieces.Remove(fromPosition);
+        _pieces[toPosition] = piece;
+
+        piece.MoveTo(toPosition);
+
+        OnPieceUndoMove(new PieceUndoMoveEventArgs(piece, fromPosition, toPosition));
+        return true;
+    }
+
+    public bool Place(Position toPosition, PieceView piece)
+    {
+        if (!IsValid(toPosition))
+            return false;
+
+        if (_pieces.ContainsKey(toPosition))
+            return false;  
+
+        if (_pieces.ContainsValue(piece))
+            return false; 
+
+        _pieces[toPosition] = piece;
+
+        OnPiecePlaced(new PiecePlacedEventArgs(piece, toPosition));
+        return true;
+    }
+
+    //Only used for Rain MoveSet atm
+    public void DeactivateTile(Position position) 
+    {
+        if (_deactivatedTiles.Contains(position))
         {
-            if (!IsValid(fromPosition))
-                return false;
-
-            if (!IsValid(toPosition))
-                return false;
-
-            if (_pieces.ContainsKey(toPosition))
-                return false;
-
-            if (!_pieces.TryGetValue(fromPosition, out var piece))
-                return false;
-
-            _pieces[toPosition] = piece;
-            _pieces.Remove(fromPosition);
-
-            piece.MoveTo(toPosition); // Update the piece's position
-
-            OnPieceMoved(new PieceMovedEventArgs(piece, fromPosition, toPosition));
-
-            return true;
+            return;
         }
 
-        public bool Place(Position toPosition, PieceView piece)
+        _deactivatedTiles.Add(position);
+
+
+        if (TryGetPieceAt(position, out var piece) && !piece.IsPlayer)
         {
-            if (!IsValid(toPosition))
-                return false;
+            _pieces.Remove(position);
+            OnPieceTaken(new PieceTakenEventArgs(piece, position));
+            _deactivatedPieces.Add(position, piece);
+        }
+        OnTileDeactivated?.Invoke(position);
+    }
 
-            if (_pieces.ContainsKey(toPosition))
-                return false;  // Avoid placing on an occupied position
+    public void UndoDeactivateTile(Position position)
+    {
+        if (_deactivatedTiles.Remove(position))
+        {
+            OnTileReactivated?.Invoke(position);
+        }
+    }
 
-            if (_pieces.ContainsValue(piece))
-                return false;  // Avoid placing the same piece twice
+    public bool Take(Position fromPosition)
+    {
+        if (!IsValid(fromPosition))
+            return false;
 
-            _pieces[toPosition] = piece;
+        if (!_pieces.TryGetValue(fromPosition, out var piece))
+            return false;
 
-            OnPiecePlaced(new PiecePlacedEventArgs(piece, toPosition));
+        _pieces.Remove(fromPosition);
+        _deactivatedPieces.Add(fromPosition, piece);
 
-            return true;
+        OnPieceTaken(new PieceTakenEventArgs(piece, fromPosition));
+
+        return true;
+    }
+
+    public bool UndoTake(Position fromPosition)
+    {
+        if (!_deactivatedPieces.TryGetValue(fromPosition, out var piece))
+        {
+            return false;
         }
 
-
-        //new method for rainmoveset
-        public void DeactivateTile(Position position)
-        {
-            if (TryGetPieceAt(position, out var piece) && !piece.IsPlayer)
-            {
-                // Deactivate the piece
-                _pieces.Remove(position);
-                OnPieceTaken(new PieceTakenEventArgs(piece, position));
-            }
-            else
-            {
-                // Deactivate the tile game object
-                if (_pieces.ContainsKey(position))
-                {
-                    _pieces.Remove(position);
-                    OnPieceTaken(new PieceTakenEventArgs(null, position)); // Send null to indicate no piece
-                }
-            }
-        }
-
-
-        public bool Take(Position fromPosition)
-        {
-            if (!IsValid(fromPosition))
-                return false;
-
-            if (!_pieces.TryGetValue(fromPosition, out var piece))
-                return false;
-
-            _pieces.Remove(fromPosition);
-
-            OnPieceTaken(new PieceTakenEventArgs(piece, fromPosition));
-
-            return true;
-        }
+        // Move the piece back to active
+        _pieces[fromPosition] = piece;
+        _deactivatedPieces.Remove(fromPosition);
+        OnPieceUndoTake(new PieceUndoTakeEventArgs(piece, fromPosition));
+        return true;
+    }
 
     public bool IsPositionAvailable(Position position)
     {
@@ -174,45 +248,56 @@ using System.Collections.Generic;
         return positions;
     }
 
-
-
     public bool TryGetPieceAt(Position position, out PieceView piece)
-                => _pieces.TryGetValue(position, out piece);
+        => _pieces.TryGetValue(position, out piece);
 
-        public bool IsValid(Position position)
-            => (-Radius < position.Q && position.Q < Radius)
-            && (-Radius < position.R && position.R < Radius)
-            && (-Radius < position.S && position.S < Radius)
-            && position.Q + position.R + position.S == 0;
+    public bool IsValid(Position position)
+        => (-Radius < position.Q && position.Q < Radius)
+        && (-Radius < position.R && position.R < Radius)
+        && (-Radius < position.S && position.S < Radius)
+        && position.Q + position.R + position.S == 0;
 
-        public void ClearBoard()
-        {
-            _pieces.Clear();
-        }
+    public bool IsTileActive(Position position)
+    {
+        return !_deactivatedTiles.Contains(position);
+    }
 
-    
-
+    public void ClearBoard()
+   {
+        _pieces.Clear();
+   }
 
     #region EventTriggers
     protected virtual void OnPieceMoved(PieceMovedEventArgs eventArgs)
-        {
-            var handler = PieceMoved;
-            handler?.Invoke(this, eventArgs);
-        }
+   {
+        var handler = PieceMoved;
+        handler?.Invoke(this, eventArgs);
+   }
 
-        protected virtual void OnPiecePlaced(PiecePlacedEventArgs eventArgs)
-        {
-            var handler = PiecePlaced;
-            handler?.Invoke(this, eventArgs);
-        }
+    protected virtual void OnPiecePlaced(PiecePlacedEventArgs eventArgs)
+   {
+        var handler = PiecePlaced;
+        handler?.Invoke(this, eventArgs);
+   }
 
-        protected virtual void OnPieceTaken(PieceTakenEventArgs eventArgs)
-        {
-            var handler = PieceTaken;
-            handler?.Invoke(this, eventArgs);
-        }
-        #endregion
+    protected virtual void OnPieceTaken(PieceTakenEventArgs eventArgs)
+   {
+        var handler = PieceTaken;
+        handler?.Invoke(this, eventArgs);
+   }
 
+    protected virtual void OnPieceUndoTake(PieceUndoTakeEventArgs eventArgs)
+   {
+       var handler = PieceUndoTake;
+       handler?.Invoke(this, eventArgs);
+   }
 
+    protected virtual void OnPieceUndoMove(PieceUndoMoveEventArgs eventArgs)
+    {
+        var handler = PieceUndoMove;
+        handler?.Invoke(this, eventArgs);
     }
+    #endregion
+
+}
 

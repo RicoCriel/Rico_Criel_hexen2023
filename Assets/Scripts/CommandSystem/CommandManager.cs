@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,23 +15,27 @@ public class CommandManager
 
     public void Execute(ICommand command)
     {
-        _commands.Add(command);
+        // Clear redo stack when executing a new command after undoing
+        if (_currentCommand + 1 < _commands.Count)
+        {
+            _commands.RemoveRange(_currentCommand + 1, _commands.Count - (_currentCommand + 1));
+        }
 
-        while (!IsAtEnd)
-            Next();
+        _commands.Add(command);
+        Next(); // Execute the new command
     }
+
     public void Previous()
     {
-        if (IsAtStart)
-            return;
+        if (IsAtStart) return;
 
         _commands[_currentCommand].Undo();
         _currentCommand--;
     }
+
     public void Next()
     {
-        if (IsAtEnd)
-            return;
+        if (IsAtEnd) return;
 
         _currentCommand++;
         _commands[_currentCommand].Execute();

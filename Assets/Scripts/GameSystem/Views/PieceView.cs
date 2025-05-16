@@ -2,6 +2,12 @@
 
 public class PieceView : MonoBehaviour
 {
+    public Vector3 Position => transform.position;
+
+    [SerializeField]
+    private bool _isPlayer;
+    public bool IsPlayer => _isPlayer;
+
     public Position GridPosition { get; set; }
 
     void Start()
@@ -10,16 +16,15 @@ public class PieceView : MonoBehaviour
         transform.position = PositionHelper.WorldPosition(gridPosition);
     }
 
-    public Vector3 Position => transform.position;
-
-
-    [SerializeField]
-    private bool _isPlayer;
-
-    public bool IsPlayer => _isPlayer;
-
     internal void Take()
-        => gameObject.SetActive(false);
+    {
+        gameObject.SetActive(false);
+    }
+
+    internal void Undo()
+       => gameObject.SetActive(true);
+        
+
     internal void MoveTo(Position toPosition)
     {
         GridPosition = toPosition; // Update the grid position when moving

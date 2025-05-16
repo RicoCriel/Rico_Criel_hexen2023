@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using UnityEngine.UIElements;
+
 
 public class PositionView : MonoBehaviour, IDropHandler, IPointerEnterHandler
 {
@@ -13,6 +13,9 @@ public class PositionView : MonoBehaviour, IDropHandler, IPointerEnterHandler
 
     [SerializeField]
     private UnityEvent OnDisable;
+
+    [SerializeField]
+    private UnityEvent OnEnable;
 
     private BoardView _boardView;
 
@@ -35,6 +38,9 @@ public class PositionView : MonoBehaviour, IDropHandler, IPointerEnterHandler
 
     internal void Disable()
         => OnDisable?.Invoke();
+
+    internal void Enable()
+        => OnEnable?.Invoke();
 
     public void OnPointerEnter(PointerEventData eventData)
     {
