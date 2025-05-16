@@ -17,7 +17,6 @@ public class CardView : MonoBehaviour, IBeginDragHandler,IDragHandler, IEndDragH
 
     [SerializeField]
     private CardType _cardType;
-
     public CardType CardType => _cardType;
 
     private void Start()

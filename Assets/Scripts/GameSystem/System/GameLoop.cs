@@ -1,27 +1,37 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
+using System.Collections;
 
 public class GameLoop : MonoBehaviour
 {
     private Board _board;
     private CommandManager _commandManager;
+    private StateMachine _stateMachine;
     private Engine _engine;
-
+    private ButtonView _buttonView;
     private PieceView _playerPieceView;
     private BoardView _boardView;
+
     [SerializeField] private int _boardRadius;
+
+    private Coroutine _delayGameOverTransition;
 
     public void OnEnable()
     {
         _board = new Board(_boardRadius);
+        _board.PieceTaken += (s, e) => CheckGameOverCondition();
+        _board.PieceUndoTake += (s, e) => CheckGameOverCondition();
         _board.PieceMoved += (s, e) => e.Piece.gameObject.transform.position = PositionHelper.WorldPosition(e.ToPosition);
-        _board.PieceUndoMove += (s,e) => e.Piece.gameObject.transform.position = PositionHelper.WorldPosition(e.ToPosition);
+        _board.PieceUndoMove += (s, e) => e.Piece.gameObject.transform.position = PositionHelper.WorldPosition(e.ToPosition);
         _board.PieceTaken += (s, e) => e.Piece?.Take();
         _board.PieceUndoTake += (s, e) => e.Piece?.Undo();
 
-        //TO DO: Create statemachine 
         _commandManager = new CommandManager();
         _engine = new Engine(_board, _commandManager);
+
+        _buttonView = FindObjectOfType<ButtonView>();
+        _stateMachine = new StateMachine(_buttonView);
 
         _boardView = FindObjectOfType<BoardView>();
         _boardView.CardHovered += CardHovered;
@@ -30,8 +40,19 @@ public class GameLoop : MonoBehaviour
         _board.OnTileReactivated += HandleTileEnable;
         _board.OnTileDeactivated += HandleTileDisable;
 
-        ResetGameState();
+        ResetInternalState();
+        InitializePiecePlacement();
 
+        _buttonView.OnUndo += UndoLastMove;
+        _buttonView.OnPlay += StartGame;
+        _buttonView.OnPause += PauseGame;
+        _buttonView.OnResume += ResumeGame;
+        _buttonView.OnQuit += ExitGame;
+        _buttonView.OnRestart += RestartGame;
+    }
+
+    private void InitializePiecePlacement()
+    {
         var pieceViews = FindObjectsOfType<PieceView>();
         foreach (var pieceView in pieceViews)
         {
@@ -44,6 +65,27 @@ public class GameLoop : MonoBehaviour
                 _board.Playerpiece = pieceView;
             }
         }
+    }
+
+    private void OnDisable()
+    {
+        _boardView.CardHovered -= CardHovered;
+        _boardView.CardDropped -= CardDropped;
+
+        _board.OnTileReactivated -= HandleTileEnable;
+        _board.OnTileDeactivated -= HandleTileDisable;
+
+        _buttonView.OnUndo -= UndoLastMove;
+        _buttonView.OnPlay -= StartGame;
+        _buttonView.OnPause -= PauseGame;
+        _buttonView.OnResume -= ResumeGame;
+        _buttonView.OnQuit -= ExitGame;
+        _buttonView.OnRestart -= RestartGame;
+    }
+
+    private void Start()
+    {
+        _stateMachine.ChangeState(new MenuState(_buttonView));
     }
 
     private void HandleTileDisable(Position position)
@@ -84,16 +126,73 @@ public class GameLoop : MonoBehaviour
         _boardView.ActivatedPositions = positions;
     }
 
-    private void ResetGameState()
-    {
-        _board.ClearBoard();  // Clear the board by removing all pieces
-        _boardView.ActivatedPositions = null;  // Clear any activated positions
-    }
-
-    public void UndoLastMove()
+    private void UndoLastMove()
     {
         _commandManager?.Previous();
         _boardView.ActivatedPositions = null;
     }
 
+    private void StartGame()
+    {
+        _stateMachine.ChangeState(_stateMachine.PlayState);
+    }
+
+    private void PauseGame()
+    {
+        _stateMachine.ChangeState(_stateMachine.PauseState);
+    }
+
+    private void ResumeGame()
+    {
+        _stateMachine.ChangeState(_stateMachine.PlayState);
+    }
+
+    private void CheckGameOverCondition()
+    {
+        var remainingPieces = _board.GetAllPieces().Count(p => !p.IsPlayer);
+
+        if (remainingPieces == 0 && _board.Playerpiece != null)
+        {
+            EndGame();
+        }
+    }
+
+    private void EndGame()
+    {
+        if(_delayGameOverTransition != null)
+        {
+            StopCoroutine(_delayGameOverTransition);
+        }
+        
+        _delayGameOverTransition = StartCoroutine(DelayedGameEnd());
+    }
+
+    private void ResetInternalState()
+    {
+        _board.ClearAll();  // Clear the board by removing all pieces
+        _boardView.ActivatedPositions = null;  // Clear any activated positions
+    }
+
+    private void RestartGame()
+    {
+        _board.Reset();       // Undo previous actions, re-emit events, then clear internal state
+        _commandManager.Reset();
+
+        InitializePiecePlacement(); // Re-initialize placement of all PieceViews
+
+        _boardView.ActivatedPositions = null;
+        _stateMachine.ChangeState(_stateMachine.PlayState);
+    }
+
+    private void ExitGame()
+    {
+        Application.Quit();
+    }
+
+    private IEnumerator DelayedGameEnd()
+    {
+        yield return new WaitForSeconds(0.5f); // Allow UI to reset
+        //Cards get frozen otherwise
+        _stateMachine.ChangeState(_stateMachine.GameOverState);
+    }
 }

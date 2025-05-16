@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.UIElements;
-
 
 public class PieceMovedEventArgs : EventArgs
 {
@@ -105,11 +104,18 @@ public class Board
 
     private readonly List<Position> _updatedPositions = new List<Position>();
     private readonly List<Position> _deactivatedTiles = new List<Position>();
+    private readonly List<(Position From, Position To)> _moveHistory = new List<(Position,Position)>();
+
     private readonly Dictionary<Position, PieceView> _deactivatedPieces = new Dictionary<Position, PieceView>();
 
     public Board(int radius)
     {
         this.Radius = radius;
+    }
+
+    public IEnumerable<PieceView> GetAllPieces()
+    {
+        return _pieces.Values;
     }
 
     public bool Move(Position fromPosition, Position toPosition)
@@ -133,6 +139,8 @@ public class Board
 
         OnPieceMoved(new PieceMovedEventArgs(piece, fromPosition, toPosition));
         _updatedPositions.Add(toPosition);
+        _moveHistory.Add((fromPosition, toPosition));
+
         return true;
     }
 
@@ -140,7 +148,7 @@ public class Board
     {
         if (!_pieces.TryGetValue(fromPosition, out var piece))
         {
-            Debug.LogWarning($"UndoMove failed: No piece at {fromPosition}");
+            //Debug.Log("UNDO MOVE FAILED");
             return false;
         }
 
@@ -151,6 +159,11 @@ public class Board
 
         OnPieceUndoMove(new PieceUndoMoveEventArgs(piece, fromPosition, toPosition));
         return true;
+    }
+
+    public bool TryUndoMove(Position fromPosition, Position toPosition)
+    {
+        return _pieces.ContainsKey(fromPosition);
     }
 
     public bool Place(Position toPosition, PieceView piece)
@@ -262,10 +275,33 @@ public class Board
         return !_deactivatedTiles.Contains(position);
     }
 
-    public void ClearBoard()
+    public void ClearAll()
    {
         _pieces.Clear();
+        _deactivatedPieces.Clear();
+        _deactivatedTiles.Clear();
+        _moveHistory.Clear();
    }
+
+    public void Reset()
+    {
+        foreach (var (from, to) in _moveHistory.AsEnumerable().Reverse())
+        {
+            UndoMove(to,from);
+        }
+
+        foreach (var kvp in _deactivatedPieces.ToList())
+        {
+            UndoTake(kvp.Key);
+        }
+
+        foreach (var position in GetAllPositions())
+        {
+            OnTileReactivated?.Invoke(position);
+        }
+
+        ClearAll();
+    }
 
     #region EventTriggers
     protected virtual void OnPieceMoved(PieceMovedEventArgs eventArgs)

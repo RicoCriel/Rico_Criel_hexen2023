@@ -40,4 +40,10 @@ public class CommandManager
         _currentCommand++;
         _commands[_currentCommand].Execute();
     }
+
+    public void Reset()
+    {
+        _commands.Clear();
+        _currentCommand = -1;
+    }
 }

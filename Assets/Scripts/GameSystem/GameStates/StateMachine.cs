@@ -2,68 +2,26 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
-public enum States
+internal class StateMachine
 {
-    Player, Enemy
-}
+    private IState _currentState;
+    public MenuState MenuState { get; }
+    public PlayState PlayState { get; }
+    public PauseState PauseState { get; }
+    public GameOverState GameOverState { get; }
 
-public class StateMachine
-{
-    //private Dictionary<States, State> _states = new Dictionary<States, State>();
+    public StateMachine(ButtonView buttonView)
+    {
+        MenuState = new MenuState(buttonView);
+        PlayState = new PlayState(buttonView);
+        PauseState = new PauseState(buttonView);
+        GameOverState = new GameOverState(buttonView);
+    }
 
-    //private Stack<States> _currentStateNames = new Stack<States>();
-
-    //public State CurrentState => _states[_currentStateNames.Peek()];
-
-    //public States CurrentStateName => _currentStateNames.Peek();
-
-    //public void Register(States stateName, State state)
-    //{
-    //    state.StateMachine = this;
-
-    //    _states.Add(stateName, state);
-    //}
-
-    //public States InitialState
-    //{
-    //    set
-    //    {
-    //        _currentStateNames.Push(value);
-    //        CurrentState.OnEnter();
-    //        CurrentState.OnResume();
-    //    }
-    //}
-
-    //public void MoveTo(States stateName)
-    //{
-    //    CurrentState.OnSuspend();
-    //    CurrentState.OnExit();
-
-    //    _currentStateNames.Pop();
-    //    _currentStateNames.Push(stateName);
-
-    //    CurrentState.OnEnter();
-    //    CurrentState.OnResume();
-    //}
-
-    //public void Push(States stateName)
-    //{
-    //    CurrentState.OnSuspend();
-
-    //    _currentStateNames.Push(stateName);
-
-    //    CurrentState.OnEnter();
-    //    CurrentState.OnResume();
-    //}
-
-    //public void Pop()
-    //{
-    //    CurrentState.OnSuspend();
-    //    CurrentState.OnExit();
-
-    //    _currentStateNames.Pop();
-
-    //    CurrentState.OnResume();
-    //}
+    public void ChangeState(IState newState)
+    {
+        _currentState?.Exit();
+        _currentState = newState;
+        _currentState?.Enter();
+    }
 }
