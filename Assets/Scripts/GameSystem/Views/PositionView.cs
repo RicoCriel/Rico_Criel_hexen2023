@@ -1,9 +1,13 @@
+using CameraShake;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 
-public class PositionView : MonoBehaviour, IDropHandler, IPointerEnterHandler
+public class PositionView : MonoBehaviour, IDropHandler,
+    IPointerEnterHandler, IShake, IParticle
 {
     [SerializeField]
     private UnityEvent OnActivate;
@@ -12,19 +16,39 @@ public class PositionView : MonoBehaviour, IDropHandler, IPointerEnterHandler
     private UnityEvent OnDeactivate;
 
     [SerializeField]
-    private UnityEvent OnDisable;
+    private UnityEvent OnDisablePosition;
 
     [SerializeField]
-    private UnityEvent OnEnable;
+    private UnityEvent OnEnablePosition;
+
+    private Action <GameObject> OnSpawnVFX;
+
+    [SerializeField] private GameObject _particlePrefab;
 
     private BoardView _boardView;
 
     public Position GridPosition
         => PositionHelper.GridPosition(transform.position);
 
+    private VfxManager _vfxManager;
+
+    private void OnEnable()
+    {
+        //Debug.Log($"Before Add: {OnSpawnVFX?.GetInvocationList().Length ?? 0}");
+        OnSpawnVFX += DoCameraShake;
+        OnSpawnVFX += SpawnVFX;
+        //Debug.Log($"After Add: {OnSpawnVFX?.GetInvocationList().Length ?? 0}");
+    }
+
+    private void OnDisable()
+    {
+        OnSpawnVFX -= DoCameraShake;
+        OnSpawnVFX -= SpawnVFX;
+    }
 
     void Start()
     {
+        _vfxManager = FindObjectOfType<VfxManager>();
         _boardView = GetComponentInParent<BoardView>();
         var gridPosition = PositionHelper.GridPosition(transform.position);
         transform.position = PositionHelper.WorldPosition(gridPosition);
@@ -37,10 +61,13 @@ public class PositionView : MonoBehaviour, IDropHandler, IPointerEnterHandler
         => OnActivate?.Invoke();
 
     internal void Disable()
-        => OnDisable?.Invoke();
+    {
+        OnDisablePosition?.Invoke();
+        OnSpawnVFX?.Invoke(_particlePrefab);
+    }
 
     internal void Enable()
-        => OnEnable?.Invoke();
+        => OnEnablePosition?.Invoke();
 
     public void OnPointerEnter(PointerEventData eventData)
     {
@@ -54,5 +81,15 @@ public class PositionView : MonoBehaviour, IDropHandler, IPointerEnterHandler
         var cardView = eventData.pointerDrag?.GetComponent<CardView>();
         if (cardView != null)
             _boardView.OnCardViewDroppedOnPositionView(this, cardView);
+    }
+
+    public void DoCameraShake(GameObject camera = null)
+    {
+        CameraShaker.Presets.ShortShake3D(0.2f,25,5);
+    }
+
+    public void SpawnVFX(GameObject prefab)
+    {
+        _vfxManager?.SpawnEffect(prefab, transform.position);
     }
 }

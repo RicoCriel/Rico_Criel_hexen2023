@@ -73,6 +73,7 @@ class ButtonView: MonoBehaviour
 
     private void Restart()
     {
+        AudioManager.Instance.PlaySFX(SFXType.UIButtonClick);
         OnRestart?.Invoke();
     }
 
@@ -120,5 +121,15 @@ class ButtonView: MonoBehaviour
     public void HideGameUI()
     {
         _gamePlayUI.SetActive(false);
+    }
+
+    public void PlaySFX()
+    {
+        AudioManager.Instance.PlaySFX(SFXType.UIButtonClick);
+    }
+
+    public void PlayUndoSFX()
+    {
+        AudioManager.Instance.PlaySFX(SFXType.UndoMove);
     }
 }

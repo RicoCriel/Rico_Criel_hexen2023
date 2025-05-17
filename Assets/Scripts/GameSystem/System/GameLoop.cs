@@ -16,10 +16,16 @@ public class GameLoop : MonoBehaviour
     [SerializeField] private int _boardRadius;
 
     private Coroutine _delayGameOverTransition;
+    private AudioManager _audioManager;
+    private VfxManager _vfxManager;
 
     public void OnEnable()
     {
         _board = new Board(_boardRadius);
+        _audioManager = FindObjectOfType<AudioManager>();
+        _vfxManager = FindObjectOfType<VfxManager>();
+        _audioManager?.InitializeWithBoard(_board);
+
         _board.PieceTaken += (s, e) => CheckGameOverCondition();
         _board.PieceUndoTake += (s, e) => CheckGameOverCondition();
         _board.PieceMoved += (s, e) => e.Piece.gameObject.transform.position = PositionHelper.WorldPosition(e.ToPosition);
@@ -74,6 +80,8 @@ public class GameLoop : MonoBehaviour
 
         _board.OnTileReactivated -= HandleTileEnable;
         _board.OnTileDeactivated -= HandleTileDisable;
+
+        _audioManager?.UnregisterBoardEvents();
 
         _buttonView.OnUndo -= UndoLastMove;
         _buttonView.OnPlay -= StartGame;
@@ -164,7 +172,7 @@ public class GameLoop : MonoBehaviour
             StopCoroutine(_delayGameOverTransition);
         }
         
-        _delayGameOverTransition = StartCoroutine(DelayedGameEnd());
+        _delayGameOverTransition = StartCoroutine(DelayGameEnd());
     }
 
     private void ResetInternalState()
@@ -181,6 +189,7 @@ public class GameLoop : MonoBehaviour
         InitializePiecePlacement(); // Re-initialize placement of all PieceViews
 
         _boardView.ActivatedPositions = null;
+        _vfxManager?.Clear(); // Clean up the particles still alive
         _stateMachine.ChangeState(_stateMachine.PlayState);
     }
 
@@ -189,7 +198,7 @@ public class GameLoop : MonoBehaviour
         Application.Quit();
     }
 
-    private IEnumerator DelayedGameEnd()
+    private IEnumerator DelayGameEnd()
     {
         yield return new WaitForSeconds(0.5f); // Allow UI to reset
         //Cards get frozen otherwise
