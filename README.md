@@ -35,7 +35,8 @@ These were:
 [UNDO MOVE]
 
 If you want to try out the game yourself please do :) 
-[LINK TO GAME]
+
+https://ricocriel.github.io/Hexen_Game/
 
 
 
